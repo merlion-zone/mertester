@@ -5,6 +5,7 @@ import { ConfigModule } from '@nestjs/config'
 import { ConsoleModule } from 'nestjs-console'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { AppCmdService } from './app.cmd.service'
+import { EvmModule } from './evm/evm.module'
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { AppCmdService } from './app.cmd.service'
       autoLoadEntities: true,
       synchronize: true,
     }),
+    EvmModule,
   ],
   controllers: [AppController],
   providers: [AppService, AppCmdService],

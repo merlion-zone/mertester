@@ -43,4 +43,12 @@ lerna-debug.log*
 
 src/evm/abi/
 
+typechain/
+
+#Hardhat files
+cache/
+artifacts/
+
+.env.local
+
 sqlite.db*
