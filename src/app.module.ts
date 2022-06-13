@@ -6,6 +6,8 @@ import { ConsoleModule } from 'nestjs-console'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { AppCmdService } from './app.cmd.service'
 import { EvmModule } from './evm/evm.module'
+import { CosmModule } from './cosm/cosm.module'
+import { OrchestrateModule } from './orchestrate/orchestrate.module'
 
 @Module({
   imports: [
@@ -22,6 +24,8 @@ import { EvmModule } from './evm/evm.module'
       synchronize: true,
     }),
     EvmModule,
+    CosmModule,
+    OrchestrateModule,
   ],
   controllers: [AppController],
   providers: [AppService, AppCmdService],

@@ -1989,9 +1989,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@merlionzone/merlionjs@npm:^0.1.3":
-  version: 0.1.3
-  resolution: "@merlionzone/merlionjs@npm:0.1.3"
+"@merlionzone/merlionjs@npm:^0.1.4":
+  version: 0.1.4
+  resolution: "@merlionzone/merlionjs@npm:0.1.4"
   dependencies:
     "@cosmjs/amino": ^0.28.4
     "@cosmjs/crypto": ^0.28.4
@@ -2005,10 +2005,11 @@ __metadata:
     "@ethersproject/abstract-signer": ^5.6.2
     "@ethersproject/providers": ^5.6.8
     cosmjs-types: ^0.4.0
+    decimal.js: ^10.3.1
     ethers: ^5.6.8
     long: ^4.0.0
     protobufjs: ~6.11.2
-  checksum: 3f002f60f19b082401f49127ad2eb8d0c3c78674925e5d30c555416f09ca727f8cad5526e5926ad08a5a454069c0562a49cdd9a817c58457d76e1afd8d7400a1
+  checksum: babc786c37d5d6245693b0fb8a4fdea317eeb0b75caa1bed457a2c2b03f71ca740e5a8895e81057347d2f5d67eb4111ae7a93aa5f8065804b26b083eecc6442f
   languageName: node
   linkType: hard
 
@@ -6858,7 +6859,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"decimal.js@npm:^10.2.1":
+"decimal.js@npm:^10.2.1, decimal.js@npm:^10.3.1":
   version: 10.3.1
   resolution: "decimal.js@npm:10.3.1"
   checksum: 0351ac9f05fe050f23227aa6a4573bee2d58fa7378fcf28d969a8c789525032effb488a90320fd3fe86a66e17b4bc507d811b15eada5b7f0e7ec5d2af4c24a59
@@ -13031,13 +13032,19 @@ __metadata:
   resolution: "mertester@workspace:."
   dependencies:
     "@cosmjs/amino": ^0.28.4
+    "@cosmjs/crypto": ^0.28.6
     "@cosmjs/encoding": ^0.28.4
+    "@cosmjs/math": ^0.28.4
+    "@cosmjs/proto-signing": ^0.28.4
+    "@cosmjs/stargate": ^0.28.6
+    "@cosmjs/tendermint-rpc": ^0.28.4
+    "@cosmjs/utils": ^0.28.4
     "@ethersproject/abi": ^5.6.3
     "@ethersproject/bytes": ^5.6.1
     "@ethersproject/experimental": ^5.6.2
     "@ethersproject/logger": ^5.6.0
     "@ethersproject/providers": ^5.6.8
-    "@merlionzone/merlionjs": ^0.1.3
+    "@merlionzone/merlionjs": ^0.1.4
     "@nestjs/axios": ^0.0.3
     "@nestjs/cli": ^8.0.0
     "@nestjs/common": ^8.0.0
@@ -13075,6 +13082,7 @@ __metadata:
     chalk: ^4.1.2
     cli-progress: ^3.9.0
     commander: ^8.2.0
+    cosmjs-types: ^0.4.0
     dotenv: ^16.0.0
     eslint: ^7.29.0
     eslint-config-prettier: ^8.3.0

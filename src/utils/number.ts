@@ -1,4 +1,5 @@
 import { BigNumber } from 'ethers'
+import { Dec } from '@merlionzone/merlionjs'
 
 export const E18 = BigNumber.from(10).pow(18)
 export const E10 = BigNumber.from(10).pow(10)
@@ -11,3 +12,7 @@ export const E4 = BigNumber.from(10).pow(4)
 export const E3 = BigNumber.from(10).pow(3)
 export const E2 = BigNumber.from(10).pow(2)
 export const E1 = BigNumber.from(10).pow(1)
+
+export function decInt(d: number | string): string {
+  return new Dec(d).mul(E18.toString()).toInt().toString()
+}
