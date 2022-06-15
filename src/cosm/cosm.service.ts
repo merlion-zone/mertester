@@ -17,7 +17,7 @@ export class CosmService {
 
   async getClient(
     account: Account,
-    manageSequence = true,
+    manageSequence = false,
   ): Promise<MerlionClient> {
     let clientCached = this.clients.get(account.merAddress())
     if (clientCached) {

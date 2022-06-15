@@ -11,7 +11,7 @@ import {
 import { MerlionClient, setupOracleExtension } from '@merlionzone/merlionjs'
 import { Account } from '../accounts'
 import { Tendermint34Client } from '@cosmjs/tendermint-rpc'
-import { DirectEthSecp256k1Wallet } from '@merlionzone/merlionjs/src/proto-signing/directethsecp256k1wallet'
+import { DirectEthSecp256k1Wallet } from '@merlionzone/merlionjs/dist/proto-signing/directethsecp256k1wallet'
 
 export async function getClient(
   account: Account,

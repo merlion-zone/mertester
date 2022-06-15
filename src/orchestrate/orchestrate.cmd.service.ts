@@ -3,7 +3,8 @@ import { Erc20Service } from '../evm/erc20.service'
 import { CosmService } from '../cosm/cosm.service'
 import { ProposalService } from '../cosm/proposal.service'
 import { Coin } from '@merlionzone/merlionjs'
-import { E18, sleep } from '../utils'
+import { E18 } from '../utils'
+import { OracleService, toExchangeRates } from '../cosm/oracle.service'
 
 @Console({
   command: 'orchestrate',
@@ -14,6 +15,7 @@ export class OrchestrateCmdService {
     private readonly erc20Service: Erc20Service,
     private readonly cosmService: CosmService,
     private readonly proposalService: ProposalService,
+    private readonly oracleService: OracleService,
   ) {}
 
   @Command({
@@ -57,6 +59,46 @@ export class OrchestrateCmdService {
       const denom = `erc20/${erc20Address}`
 
       await this.proposalService.ensureRegisterBacking(denom)
+      await this.proposalService.ensureRegisterCollateral(denom)
+    }
+  }
+
+  @Command({
+    command: 'register-oracle-targets',
+    options: [
+      {
+        flags: '--denoms <denoms...>',
+        description: 'Specify denoms of oracle targets',
+        defaultValue: ['alion', 'uusd'],
+      },
+    ],
+  })
+  async registerOracleTargets(opts: { denoms: string[] }) {
+    for (const denom of opts.denoms) {
+      await this.proposalService.ensureRegisterOracleTarget(denom)
+    }
+  }
+
+  @Command({
+    command: 'feed-price-loop',
+    options: [
+      {
+        flags: '--rates <rates>',
+        description:
+          'Specify exchange rates string, e.g., "alion:1.234,uusd:0.99"',
+        required: true,
+      },
+    ],
+  })
+  async feedPriceLoop(opts: { rates: string }) {
+    const rates = toExchangeRates(opts.rates)
+    for (let i = 0; ; i++) {
+      try {
+        console.log(`#${i + 1} Feed price at ${new Date()}`)
+        await this.oracleService.feedPriceByAllValidators(rates)
+      } catch (e) {
+        console.error(e)
+      }
     }
   }
 }

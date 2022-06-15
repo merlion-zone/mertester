@@ -41,7 +41,7 @@
     "@ethersproject/experimental": "^5.6.2",
     "@ethersproject/logger": "^5.6.0",
     "@ethersproject/providers": "^5.6.8",
-    "@merlionzone/merlionjs": "^0.1.4",
+    "@merlionzone/merlionjs": "^0.1.5",
     "@nestjs/axios": "^0.0.3",
     "@nestjs/common": "^8.0.0",
     "@nestjs/config": "^1.0.1",

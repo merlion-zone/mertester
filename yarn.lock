@@ -1989,9 +1989,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@merlionzone/merlionjs@npm:^0.1.4":
-  version: 0.1.4
-  resolution: "@merlionzone/merlionjs@npm:0.1.4"
+"@merlionzone/merlionjs@npm:^0.1.5":
+  version: 0.1.5
+  resolution: "@merlionzone/merlionjs@npm:0.1.5"
   dependencies:
     "@cosmjs/amino": ^0.28.4
     "@cosmjs/crypto": ^0.28.4
@@ -2009,7 +2009,7 @@ __metadata:
     ethers: ^5.6.8
     long: ^4.0.0
     protobufjs: ~6.11.2
-  checksum: babc786c37d5d6245693b0fb8a4fdea317eeb0b75caa1bed457a2c2b03f71ca740e5a8895e81057347d2f5d67eb4111ae7a93aa5f8065804b26b083eecc6442f
+  checksum: c80faa8d9dba0b262448575bef5bfef8d1b37ac64fc2fdd9a666269f424eae37710065903ae541677292f7b0ef76e1e7328119493752f8628814b11b10887b50
   languageName: node
   linkType: hard
 
@@ -13044,7 +13044,7 @@ __metadata:
     "@ethersproject/experimental": ^5.6.2
     "@ethersproject/logger": ^5.6.0
     "@ethersproject/providers": ^5.6.8
-    "@merlionzone/merlionjs": ^0.1.4
+    "@merlionzone/merlionjs": ^0.1.5
     "@nestjs/axios": ^0.0.3
     "@nestjs/cli": ^8.0.0
     "@nestjs/common": ^8.0.0
