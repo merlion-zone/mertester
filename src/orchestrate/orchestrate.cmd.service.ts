@@ -50,17 +50,22 @@ export class OrchestrateCmdService {
       },
     ],
   })
-  async registerBackingCollateral(opts: { symbols: string[] }) {
+  async registerBackingCollateral(opts: {
+    symbols: string[]
+  }): Promise<string[]> {
+    const denoms = []
     for (const symbol of opts.symbols) {
       const { address: erc20Address } = await this.erc20Service.deployErc20({
         symbol,
       })
 
       const denom = `erc20/${erc20Address}`
+      denoms.push(denom)
 
       await this.proposalService.ensureRegisterBacking(denom)
       await this.proposalService.ensureRegisterCollateral(denom)
     }
+    return denoms
   }
 
   @Command({
@@ -77,6 +82,56 @@ export class OrchestrateCmdService {
     for (const denom of opts.denoms) {
       await this.proposalService.ensureRegisterOracleTarget(denom)
     }
+  }
+
+  @Command({
+    command: 'prepare-all',
+    options: [
+      {
+        flags: '--numAccounts <numAccounts>',
+        defaultValue: 4,
+      },
+      {
+        flags: '--symbols <symbols...>',
+        description:
+          'Specify symbols of ERC20 tokens which will be deployed and registered',
+        required: true,
+      },
+      {
+        flags: '--prices <prices>',
+        description:
+          'Specify prices of tokens which will be fed to oracle, e.g., "LION:0.000000000001234,USM:0.995,BTC:0.00000001,USDT:0.000000000001"',
+        required: true,
+      },
+    ],
+  })
+  async prepareAll(opts: {
+    numAccounts: number
+    symbols: string[]
+    prices: string
+  }) {
+    await this.prepareAccounts({ numAccounts: opts.numAccounts })
+
+    let denoms = await this.registerBackingCollateral({
+      symbols: opts.symbols,
+    })
+
+    denoms = ['alion', 'uusd'].concat(denoms)
+    const symbols = ['LION', 'USM'].concat(opts.symbols)
+    const pricesMap = new Map()
+    opts.prices.split(',').forEach((part) => {
+      const [symbol, price] = part.split(':')
+      pricesMap.set(symbol, price)
+    })
+
+    await this.registerOracleTargets({
+      denoms,
+    })
+
+    const rates = denoms
+      .map((denom, i) => `${denom}:${pricesMap.get(symbols[i])}`)
+      .join(',')
+    await this.feedPriceLoop({ rates })
   }
 
   @Command({

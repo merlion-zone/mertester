@@ -79,7 +79,9 @@ export class ProposalService {
       },
     }
     const client = await this.cosmService.getClient(voter)
-    const receipt = await client.signAndBroadcastBlock(voter.merAddress(), [msg])
+    const receipt = await client.signAndBroadcastBlock(voter.merAddress(), [
+      msg,
+    ])
     assertIsDeliverTxSuccess(receipt)
   }
 
