@@ -10,7 +10,8 @@ import { assertIsDeliverTxSuccess } from '@cosmjs/stargate'
 import {
   MsgAggregateExchangeRatePrevoteEncodeObject,
   MsgAggregateExchangeRateVoteEncodeObject,
-} from '../../../merlionjs/dist/modules/oracle/messages'
+} from '@merlionzone/merlionjs'
+import { TextEncoder } from 'util'
 
 interface ExchangeRates {
   [denom: string]: Dec

@@ -3,7 +3,9 @@ import hre from './hardhat'
 import { ERC20__factory, ERC20MinterBurnerDecimals } from '../../typechain'
 import { E18, E8 } from '../utils'
 import { Account } from '../accounts'
+import { Injectable } from '@nestjs/common'
 
+@Injectable()
 export class Erc20Service {
   async deployErc20(opts: {
     name?: string

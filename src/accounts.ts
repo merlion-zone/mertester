@@ -2,7 +2,7 @@ import * as _ from 'lodash'
 import { defaultHardhatNetworkHdAccountsConfigParams } from 'hardhat/internal/core/config/default-config'
 import { ethers } from 'ethers'
 import { entropyToMnemonic } from '@ethersproject/hdnode'
-import { Address } from '../../merlionjs'
+import { Address } from '@merlionzone/merlionjs'
 import { ExternallyOwnedAccount } from '@ethersproject/abstract-signer'
 
 export interface Account extends ExternallyOwnedAccount {

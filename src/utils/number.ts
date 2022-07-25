@@ -1,5 +1,6 @@
 import { BigNumber } from 'ethers'
 import { Dec } from '@merlionzone/merlionjs'
+import { TextEncoder } from 'util'
 
 export const E18 = BigNumber.from(10).pow(18)
 export const E10 = BigNumber.from(10).pow(10)
@@ -15,4 +16,8 @@ export const E1 = BigNumber.from(10).pow(1)
 
 export function decInt(d: number | string): string {
   return new Dec(d).mul(E18.toString()).toInt().toString()
+}
+
+export function decUint8Array(d: number | string): Uint8Array {
+  return new TextEncoder().encode(decInt(d))
 }

@@ -13,18 +13,23 @@ import { VoteOption } from 'cosmjs-types/cosmos/gov/v1beta1/gov'
 import {
   backingRiskParams,
   collateralRiskParams,
+  evmChainParams,
   registerBackingProposal,
   registerCollateralProposal,
   registerOracleTargetProposal,
   targetParams,
+  updateEvmChainParamsProposal,
 } from './proposals'
-import { RegisterBackingProposal } from '../../../merlionjs/dist/proto/merlion/maker/v1/maker'
 import { GovParamsType } from '@cosmjs/stargate/build/modules/gov/queries'
 import { QueryParamsResponse } from 'cosmjs-types/cosmos/gov/v1beta1/query'
-import { RegisterCollateralProposal } from '@merlionzone/merlionjs/dist/proto/merlion/maker/v1/maker'
+import {
+  RegisterBackingProposal,
+  RegisterCollateralProposal,
+} from '@merlionzone/merlionjs/dist/proto/merlion/maker/v1/maker'
 import { OracleService } from './oracle.service'
 import Long from 'long'
-import { RegisterTargetProposal } from '../../../merlionjs/dist/proto/merlion/oracle/v1/oracle'
+import { RegisterTargetProposal } from '@merlionzone/merlionjs/dist/proto/merlion/oracle/v1/oracle'
+import { UpdateChainParamsProposal } from '@merlionzone/merlionjs/dist/proto/multigravity/v1/types'
 
 @Injectable()
 export class ProposalService {
@@ -149,6 +154,23 @@ export class ProposalService {
     const content = Any.fromPartial({
       typeUrl: '/merlion.maker.v1.RegisterCollateralProposal',
       value: RegisterCollateralProposal.encode(proposal).finish(),
+    })
+
+    await this.ensureProposal(content, numValidators)
+  }
+
+  async ensureUpdateEvmChainParams(chainIdentifier: string, numValidators = 4) {
+    const proposal: UpdateChainParamsProposal = {
+      ...updateEvmChainParamsProposal,
+      chainIdentifier,
+      params: {
+        ...evmChainParams,
+        gravityId: chainIdentifier,
+      },
+    }
+    const content = Any.fromPartial({
+      typeUrl: '/multigravity.v1.UpdateChainParamsProposal',
+      value: UpdateChainParamsProposal.encode(proposal).finish(),
     })
 
     await this.ensureProposal(content, numValidators)

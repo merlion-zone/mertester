@@ -3,8 +3,11 @@ import { Erc20Service } from '../evm/erc20.service'
 import { CosmService } from '../cosm/cosm.service'
 import { ProposalService } from '../cosm/proposal.service'
 import { Coin } from '@merlionzone/merlionjs'
-import { E18 } from '../utils'
+import { E18, sleep } from '../utils'
 import { OracleService, toExchangeRates } from '../cosm/oracle.service'
+import { EvmGravityService } from '../evm/gravity.service'
+import assert from 'assert'
+import { CosmGravityService } from '../cosm/gravity.service'
 
 @Console({
   command: 'orchestrate',
@@ -16,6 +19,8 @@ export class OrchestrateCmdService {
     private readonly cosmService: CosmService,
     private readonly proposalService: ProposalService,
     private readonly oracleService: OracleService,
+    private readonly evmGravityService: EvmGravityService,
+    private readonly cosmGravityService: CosmGravityService,
   ) {}
 
   @Command({
@@ -25,9 +30,16 @@ export class OrchestrateCmdService {
         flags: '--numAccounts <numAccounts>',
         defaultValue: 4,
       },
+      {
+        flags: '--isBridgingNet',
+        defaultValue: false,
+      },
     ],
   })
-  async prepareAccounts(opts: { numAccounts: number }) {
+  async prepareAccounts(opts: {
+    numAccounts: number
+    isBridgingNet?: boolean
+  }) {
     const validator = await this.cosmService.getAccount(0, true)
     for (let i = 0; i < opts.numAccounts; i++) {
       const account = await this.cosmService.getAccount(i)
@@ -35,6 +47,7 @@ export class OrchestrateCmdService {
         from: validator,
         to: account,
         amount: new Coin('alion', E18.mul(10).toString()).toString(),
+        isBridgingNet: opts.isBridgingNet,
       })
     }
   }
@@ -74,7 +87,7 @@ export class OrchestrateCmdService {
       {
         flags: '--denoms <denoms...>',
         description: 'Specify denoms of oracle targets',
-        defaultValue: ['alion', 'uusd'],
+        defaultValue: ['alion', 'uusm'],
       },
     ],
   })
@@ -95,7 +108,7 @@ export class OrchestrateCmdService {
         flags: '--symbols <symbols...>',
         description:
           'Specify symbols of ERC20 tokens which will be deployed and registered',
-        required: true,
+        defaultValue: [],
       },
       {
         flags: '--prices <prices>',
@@ -116,7 +129,7 @@ export class OrchestrateCmdService {
       symbols: opts.symbols,
     })
 
-    denoms = ['alion', 'uusd'].concat(denoms)
+    denoms = ['alion', 'uusm'].concat(denoms)
     const symbols = ['LION', 'USM'].concat(opts.symbols)
     const pricesMap = new Map()
     opts.prices.split(',').forEach((part) => {
@@ -140,7 +153,7 @@ export class OrchestrateCmdService {
       {
         flags: '--rates <rates>',
         description:
-          'Specify exchange rates string, e.g., "alion:1.234,uusd:0.99"',
+          'Specify exchange rates string, e.g., "alion:1.234,uusm:0.99"',
         required: true,
       },
     ],
@@ -155,5 +168,110 @@ export class OrchestrateCmdService {
         console.error(e)
       }
     }
+  }
+
+  @Command({
+    command: 'deploy-gravity',
+    options: [
+      {
+        flags: '--numAccounts <numAccounts>',
+        defaultValue: 4,
+      },
+      {
+        flags: '--gravityId <gravityId>',
+        required: true,
+      },
+    ],
+  })
+  async deployGravity(opts: { numAccounts: number; gravityId: string }) {
+    // Here use gravityId as the chainIdentifier
+    const chainIdentifier = opts.gravityId
+
+    const query = await this.cosmService.getQueryClient()
+
+    console.log(`Prepare accounts on Merlion network...`)
+    await this.prepareAccounts({ numAccounts: opts.numAccounts })
+    console.log(`Prepare accounts on EVM bridging network...`)
+    await this.prepareAccounts({
+      numAccounts: opts.numAccounts,
+      isBridgingNet: true,
+    })
+
+    await this.proposalService.ensureUpdateEvmChainParams(
+      chainIdentifier,
+      opts.numAccounts,
+    )
+
+    console.log(`EVM chain '${chainIdentifier}' is being registered...`)
+    while (true) {
+      await sleep(6000)
+      const { chainIdentifiers } = await query.gravity.chains()
+      if (chainIdentifiers.indexOf(chainIdentifier) >= 0) {
+        break
+      }
+    }
+    console.log(`EVM chain '${chainIdentifier}' has been registered`)
+
+    await this.cosmGravityService.setOrchestratorAddressForAllValidators(
+      opts.numAccounts,
+    )
+
+    const { valset } = await query.gravity.currentValset(chainIdentifier)
+
+    const { address: gravityAddress } =
+      await this.evmGravityService.deployGravity({
+        gravityId: opts.gravityId,
+        validators: valset.members.map((v) => v.ethereumAddress),
+        powers: valset.members.map((v) => v.power.toString()),
+      })
+
+    const denoms = ['alion', 'uusm']
+    for (const denom of denoms) {
+      await this.deployCosmDenomForGravity({ gravityAddress, denom })
+    }
+
+    this.evmGravityService.resetNetwork()
+  }
+
+  @Command({
+    command: 'deploy-gravity-denom',
+    options: [
+      {
+        flags: '--gravityAddress <gravityAddress>',
+        required: true,
+      },
+      {
+        flags: '--denom <denom>',
+        required: true,
+      },
+    ],
+  })
+  async deployCosmDenomForGravity(opts: {
+    gravityAddress: string
+    denom: string
+  }) {
+    const query = await this.cosmService.getQueryClient()
+    let metadata, decimals
+    if (opts.denom === 'alion') {
+      metadata = {
+        name: 'LION',
+        symbol: 'LION',
+      }
+      decimals = 18
+    } else {
+      metadata = await query.bank.denomMetadata(opts.denom)
+      decimals = metadata.denomUnits.find(
+        (unit) => unit.denom === metadata.display,
+      )?.exponent
+      assert(decimals, 'cannot get decimals')
+    }
+
+    await this.evmGravityService.deployCosmDenom({
+      gravityAddress: opts.gravityAddress,
+      denom: opts.denom,
+      name: metadata.name,
+      symbol: metadata.symbol,
+      decimals,
+    })
   }
 }
