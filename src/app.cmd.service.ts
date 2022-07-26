@@ -17,6 +17,10 @@ export class AppCmdService {
         defaultValue: false,
       },
       {
+        flags: '--showValidatorBridgingAccounts',
+        defaultValue: false,
+      },
+      {
         flags: '--validatorNum <validatorNum>',
         defaultValue: 4,
       },
@@ -25,6 +29,7 @@ export class AppCmdService {
   async accounts(opts: {
     showPrivKey: boolean
     showValidatorAccounts: boolean
+    showValidatorBridgingAccounts: boolean
     validatorNum: number
   }): Promise<void> {
     console.log('User accounts:')
@@ -42,24 +47,45 @@ export class AppCmdService {
       }
     }
 
-    if (!opts.showValidatorAccounts) {
-      return
+    if (opts.showValidatorAccounts) {
+      console.log('\nValidator accounts:')
+      const validatorAccounts = getValidatorAccounts(opts.validatorNum)
+      for (let i = 0; i < opts.validatorNum; i++) {
+        const account = validatorAccounts[i]
+        const addr = new Address(account.address)
+        console.log(
+          `Validator ${i}, evm address ${
+            account.address
+          }, cosmos address ${addr.mer()}, operator address ${addr.bech32(
+            'mervaloper',
+          )}`,
+        )
+        if (opts.showPrivKey) {
+          if ((account as any).mnemonic) {
+            console.log(`    mnemonic: ${(account as any).mnemonic.phrase}`)
+          }
+          console.log(`    private key: ${account.privateKey}`)
+        }
+      }
     }
 
-    console.log('\nValidator accounts:')
-    const validatorAccounts = getValidatorAccounts(opts.validatorNum)
-    for (let i = 0; i < opts.validatorNum; i++) {
-      const account = validatorAccounts[i]
-      const addr = new Address(account.address)
-      console.log(
-        `Validator ${i}, evm address ${
-          account.address
-        }, cosmos address ${addr.mer()}, operator address ${addr.bech32(
-          'mervaloper',
-        )}`,
-      )
-      if (opts.showPrivKey) {
-        console.log(`    private key: ${account.privateKey}`)
+    if (opts.showValidatorBridgingAccounts) {
+      console.log('\nValidator bridging accounts:')
+      const accounts = getValidatorAccounts(opts.validatorNum, true)
+      for (let i = 0; i < opts.validatorNum; i++) {
+        const account = accounts[i]
+        const addr = new Address(account.address)
+        console.log(
+          `Validator ${i}, bridging evm address ${
+            account.address
+          }, bridging cosmos address ${addr.mer()}`,
+        )
+        if (opts.showPrivKey) {
+          if ((account as any).mnemonic) {
+            console.log(`    mnemonic: ${(account as any).mnemonic.phrase}`)
+          }
+          console.log(`    private key: ${account.privateKey}`)
+        }
       }
     }
   }

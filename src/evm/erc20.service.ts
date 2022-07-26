@@ -84,4 +84,16 @@ export class Erc20Service {
       }, at block ${receipt.blockNumber}`,
     )
   }
+
+  async balance(opts: { from: string; tokenAddress: string }) {
+    const erc20 = ERC20__factory.connect(opts.tokenAddress, hre.ethers.provider)
+    const symbol = await erc20.symbol()
+    const decimals = await erc20.decimals()
+    const balance = await erc20.balanceOf(opts.from)
+    console.log(
+      `Balance of ${opts.from} at token ${
+        opts.tokenAddress
+      }: ${ethers.utils.formatUnits(balance, decimals)} ${symbol}`,
+    )
+  }
 }

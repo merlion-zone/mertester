@@ -39,17 +39,44 @@ export class OrchestrateCmdService {
   async prepareAccounts(opts: {
     numAccounts: number
     isBridgingNet?: boolean
+    forBridging?: boolean
+    oneMore?: boolean
   }) {
-    const validator = await this.cosmService.getAccount(0, true)
+    const promises = []
     for (let i = 0; i < opts.numAccounts; i++) {
-      const account = await this.cosmService.getAccount(i)
-      await this.cosmService.transfer({
-        from: validator,
-        to: account,
-        amount: new Coin('alion', E18.mul(10).toString()).toString(),
-        isBridgingNet: opts.isBridgingNet,
+      promises.push(async () => {
+        const validator = await this.cosmService.getAccount(i, true)
+        const account = await this.cosmService.getAccount(
+          i,
+          opts.forBridging,
+          opts.forBridging,
+        )
+        await this.cosmService.transfer({
+          from: validator,
+          to: account,
+          amount: new Coin('alion', E18.mul(10).toString()).toString(),
+          isBridgingNet: opts.isBridgingNet,
+        })
+
+        if (opts.oneMore && i + 1 === opts.numAccounts) {
+          const account = await this.cosmService.getAccount(
+            i + 1, // one more account
+            opts.forBridging,
+            opts.forBridging,
+          )
+          console.log(
+            `One more account: ${account.merAddress()}, ${account.ethAddress()}`,
+          )
+          await this.cosmService.transfer({
+            from: validator,
+            to: account,
+            amount: new Coin('alion', E18.mul(10).toString()).toString(),
+            isBridgingNet: opts.isBridgingNet,
+          })
+        }
       })
     }
+    await Promise.all(promises.map((fn) => fn()))
   }
 
   @Command({
@@ -191,10 +218,29 @@ export class OrchestrateCmdService {
 
     console.log(`Prepare accounts on Merlion network...`)
     await this.prepareAccounts({ numAccounts: opts.numAccounts })
-    console.log(`Prepare accounts on EVM bridging network...`)
+    console.log(
+      `Prepare accounts for validator orchestrator on Merlion network...`,
+    )
+    await this.prepareAccounts({
+      numAccounts: opts.numAccounts,
+      isBridgingNet: false,
+      forBridging: true,
+      oneMore: true,
+    })
+    console.log(`Prepare accounts or on EVM bridging network...`)
     await this.prepareAccounts({
       numAccounts: opts.numAccounts,
       isBridgingNet: true,
+      forBridging: false,
+    })
+    console.log(
+      `Prepare accounts for validator orchestrator on EVM bridging network...`,
+    )
+    await this.prepareAccounts({
+      numAccounts: opts.numAccounts,
+      isBridgingNet: true,
+      forBridging: true,
+      oneMore: true,
     })
 
     await this.proposalService.ensureUpdateEvmChainParams(
@@ -231,6 +277,25 @@ export class OrchestrateCmdService {
     }
 
     this.evmGravityService.resetNetwork()
+
+    console.log(
+      `Update gravity params bridgeEthereumAddress to ${gravityAddress}...`,
+    )
+    await this.proposalService.ensureUpdateEvmChainParams(
+      chainIdentifier,
+      opts.numAccounts,
+      gravityAddress,
+    )
+
+    console.log(`EVM chain '${chainIdentifier}' is being updated...`)
+    while (true) {
+      await sleep(6000)
+      const { params } = await query.gravity.params(chainIdentifier)
+      if (params.bridgeEthereumAddress === gravityAddress) {
+        break
+      }
+    }
+    console.log(`EVM chain '${chainIdentifier}' has been updated`)
   }
 
   @Command({

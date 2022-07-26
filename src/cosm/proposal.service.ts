@@ -159,13 +159,19 @@ export class ProposalService {
     await this.ensureProposal(content, numValidators)
   }
 
-  async ensureUpdateEvmChainParams(chainIdentifier: string, numValidators = 4) {
+  async ensureUpdateEvmChainParams(
+    chainIdentifier: string,
+    numValidators = 4,
+    bridgeEthereumAddress?: string,
+  ) {
     const proposal: UpdateChainParamsProposal = {
       ...updateEvmChainParamsProposal,
       chainIdentifier,
       params: {
         ...evmChainParams,
         gravityId: chainIdentifier,
+        bridgeEthereumAddress:
+          bridgeEthereumAddress ?? evmChainParams.bridgeEthereumAddress,
       },
     }
     const content = Any.fromPartial({

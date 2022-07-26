@@ -6,10 +6,14 @@ import { assertIsDeliverTxSuccess } from '@cosmjs/stargate'
 
 @Injectable()
 export class CosmService {
-  async getAccount(index: number, isValidator = false): Promise<Account> {
+  async getAccount(
+    index: number,
+    isValidator = false,
+    forBridging = false,
+  ): Promise<Account> {
     const accounts = !isValidator
       ? getAccounts()
-      : getValidatorAccounts(index + 1)
+      : getValidatorAccounts(index + 1, forBridging)
     return accounts[index]
   }
 

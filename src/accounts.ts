@@ -45,18 +45,26 @@ export function getAccounts(): Account[] {
   return accounts
 }
 
-function getEntropy(index: number) {
+function getEntropy(index: number, forBridging = false) {
   if (index > 255) {
     throw new Error('Byte value overflow')
   }
   const entropy = ethers.utils.zeroPad([], 16)
-  return entropy.fill(index, -1)
+  entropy.fill(index, -1)
+  if (forBridging) {
+    // for validator bridging account
+    entropy.fill(1, -2, -1)
+  }
+  return entropy
 }
 
-export function getValidatorAccounts(num: number): Account[] {
+export function getValidatorAccounts(
+  num: number,
+  forBridging = false,
+): Account[] {
   const accounts = []
   for (let i = 0; i < num; i++) {
-    const mnemonic = entropyToMnemonic(getEntropy(i))
+    const mnemonic = entropyToMnemonic(getEntropy(i, forBridging))
     const hdWallet = ethers.utils.HDNode.fromMnemonic(mnemonic)
     const account = hdWallet.derivePath("m/44'/60'/0'/0/0")
     accounts.push(Object.assign({}, account, accountFunctions))

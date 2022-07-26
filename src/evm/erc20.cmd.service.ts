@@ -2,6 +2,7 @@ import { Command, Console } from 'nestjs-console'
 import { BigNumber } from 'ethers'
 import { E18, E8 } from '../utils'
 import { Erc20Service } from './erc20.service'
+import hre from './hardhat'
 
 @Console({
   command: 'evm.erc20',
@@ -43,5 +44,21 @@ export class Erc20CmdService {
       decimals: opts.decimals,
       supply: BigNumber.from(opts.supply),
     })
+  }
+
+  @Command({
+    command: 'balance <token> <account>',
+    options: [
+      {
+        flags: '--bridging',
+        defaultValue: false,
+      },
+    ],
+  })
+  async balance(token: string, account: string, opts: { bridging: boolean }) {
+    if (opts.bridging) {
+      hre.changeNetwork('bridgingNet')
+    }
+    await this.erc20Service.balance({ tokenAddress: token, from: account })
   }
 }
